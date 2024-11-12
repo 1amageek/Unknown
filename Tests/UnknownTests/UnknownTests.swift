@@ -7,7 +7,7 @@ import Testing
 @Test("testBasicComprehension")
 func testComprehead() async throws {
     
-    let understanding = try await Unknown("quantum computing").comprehend()
+    let understanding = try await Unknown("紅鮎").comprehend()
     print(understanding)
     #expect(!understanding.definition.isEmpty, "Definition should not be empty")
     #expect(!understanding.category.isEmpty, "Category should not be empty")

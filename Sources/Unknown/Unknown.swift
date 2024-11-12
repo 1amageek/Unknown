@@ -93,7 +93,7 @@ public struct Unknown: Sendable {
         ///   - logger: Optional logger for debugging and monitoring
         public init(
             model: String = "llama3.2:latest",
-            searchLimit: Int = 15,
+            searchLimit: Int = 10,
             logger: Logger? = nil
         ) {
             self.model = model
@@ -130,12 +130,10 @@ public struct Unknown: Sendable {
     public func comprehend() async throws -> Understanding {
         configuration.logger?.debug("Starting comprehension", metadata: [
             "query": .string(query)
-        ])
-        
+        ])        
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ComprehensionError.generalError("Empty query provided")
         }
-        
         do {
             let keywords = try await extractAndAnalyzeKeywords(query)
             let searchResults = try await performSearch(keywords: keywords)
@@ -272,6 +270,7 @@ public struct Unknown: Sendable {
         }
         
         let jsonResponse = response.extractedCodeBlock()
+        print(jsonResponse)
         guard let jsonData = jsonResponse.data(using: .utf8) else {
             throw ComprehensionError.parsingFailed("Failed to convert response to data")
         }
