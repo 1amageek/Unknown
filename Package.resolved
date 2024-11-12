@@ -1,0 +1,60 @@
+{
+  "originHash" : "982ce1d55b28176ee1f2df9295732b1bb93ec63a8d0cbf50a307c7f28959d790",
+  "pins" : [
+    {
+      "identity" : "aspectanalyzer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1amageek/AspectAnalyzer.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "70d6c05989a6cd7f7770b1e55882c4b49548796f"
+      }
+    },
+    {
+      "identity" : "ollamakit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1amageek/OllamaKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f021e813b9d3368ecfae01d082372b4bc86029e2"
+      }
+    },
+    {
+      "identity" : "remark",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1amageek/Remark.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "10ac2ca1c85423738e76d9eb1c87d93af5a1f396"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1efe6f812904b34ed76ba28fd1f3e9f3bc94f8ec"
+      }
+    },
+    {
+      "identity" : "swiftretry",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1amageek/SwiftRetry.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c816b20c168e2cf646caa35a4aa899c8613b3c1f"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "0837db354faf9c9deb710dc597046edaadf5360f"
+      }
+    }
+  ],
+  "version" : 3
+}
