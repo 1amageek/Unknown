@@ -2,9 +2,7 @@ import Foundation
 import AspectAnalyzer
 import OllamaKit
 import Logging
-import Remark
 import SwiftSoup
-import NaturalLanguage
 
 /// Represents an optimized understanding of an unknown concept or term
 public struct Understanding: Sendable {
@@ -23,6 +21,13 @@ public struct Understanding: Sendable {
     /// Confidence score of the understanding
     public let confidence: Float
     
+    /// Creates a new Understanding instance
+    /// - Parameters:
+    ///   - query: The original query or term
+    ///   - definition: Core definition or explanation
+    ///   - category: Category or type of the concept
+    ///   - concepts: Related concepts and terms
+    ///   - confidence: Confidence score between 0 and 1
     public init(
         query: String,
         definition: String,
@@ -66,8 +71,6 @@ public enum ComprehensionError: Error {
     case parsingFailed(String)
     /// Failed to extract meaningful content
     case contentExtractionFailed(String)
-    /// AI model related errors
-    case modelError(String)
     /// General errors
     case generalError(String)
 }
@@ -78,89 +81,78 @@ public struct Unknown: Sendable {
     public struct Configuration: Sendable {
         /// The model to use for analysis
         public let model: String
-        /// Maximum number of sources to consider
-        public let maxSources: Int
-        /// Minimum confidence threshold
-        public let minConfidence: Float
-        /// Maximum tokens for context
-        public let maxContextTokens: Int
         /// Search result limit
         public let searchLimit: Int
+        /// Optional logger instance for debugging and monitoring
+        public let logger: Logger?
         
+        /// Creates a new Configuration instance
+        /// - Parameters:
+        ///   - model: The model identifier to use for analysis
+        ///   - searchLimit: Maximum number of search results to process
+        ///   - logger: Optional logger for debugging and monitoring
         public init(
             model: String = "llama3.2:latest",
-            maxSources: Int = 5,
-            minConfidence: Float = 0.7,
-            maxContextTokens: Int = 1024,
-            searchLimit: Int = 10
+            searchLimit: Int = 15,
+            logger: Logger? = nil
         ) {
             self.model = model
-            self.maxSources = maxSources
-            self.minConfidence = minConfidence
-            self.maxContextTokens = maxContextTokens
             self.searchLimit = searchLimit
+            self.logger = logger
         }
         
+        /// Default configuration settings
         public static let `default` = Configuration()
     }
     
     private let query: String
     private let configuration: Configuration
-    private let logger: Logger
     private let ollamaKit: OllamaKit
     private let aspectAnalyzer: AspectAnalyzer
     
-    /// Initialize with a query to comprehend
+    /// Creates a new Unknown instance
     /// - Parameters:
     ///   - query: The query containing unknown terms to understand
     ///   - configuration: Configuration options for the analysis
-    ///   - logger: Optional logger for debugging
     public init(
         _ query: String,
-        configuration: Configuration = .default,
-        logger: Logger? = nil
+        configuration: Configuration = .default
     ) {
         self.query = query
         self.configuration = configuration
-        self.logger = logger ?? Logger(label: "Unknown")
         self.ollamaKit = OllamaKit()
         self.aspectAnalyzer = AspectAnalyzer(model: configuration.model)
     }
     
-    /// Comprehend the unknown terms in the query
+    /// Comprehends the unknown terms in the query
     /// - Returns: An Understanding of the unknown terms
+    /// - Throws: ComprehensionError if analysis fails
     public func comprehend() async throws -> Understanding {
-        logger.debug("Starting comprehension", metadata: [
+        configuration.logger?.debug("Starting comprehension", metadata: [
             "query": .string(query)
         ])
         
-        // Validate input
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ComprehensionError.generalError("Empty query provided")
         }
         
         do {
-            // 1. Extract keywords and analyze
             let keywords = try await extractAndAnalyzeKeywords(query)
-            
-            // 2. Perform search and gather information
             let searchResults = try await performSearch(keywords: keywords)
-            
-            // 3. Analyze gathered information
             return try await analyzeInformation(
                 query: query,
                 keywords: keywords,
                 searchResults: searchResults
             )
         } catch {
-            logger.error("Comprehension failed", metadata: [
+            configuration.logger?.error("Comprehension failed", metadata: [
                 "error": .string(error.localizedDescription)
             ])
             throw error
         }
     }
     
-    /// Static method to directly comprehend a query
+    /// Directly comprehends a query using default or provided configuration
     /// - Parameters:
     ///   - query: The query to comprehend
     ///   - configuration: Optional configuration for the analysis
@@ -169,9 +161,6 @@ public struct Unknown: Sendable {
         _ query: String,
         configuration: Configuration = .default
     ) async throws -> Understanding {
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(query)
-        let language = recognizer.dominantLanguage?.rawValue
         let unknown = Unknown(query, configuration: configuration)
         return try await unknown.comprehend()
     }
@@ -181,7 +170,7 @@ public struct Unknown: Sendable {
     /// Extracts and analyzes keywords from the query
     private func extractAndAnalyzeKeywords(_ query: String) async throws -> [String] {
         let analysis = try await aspectAnalyzer.extractKeywords(query)
-        logger.debug("Extracted keywords", metadata: [
+        configuration.logger?.debug("Extracted keywords", metadata: [
             "keywords": .string(analysis.keywords.joined(separator: ", "))
         ])
         return analysis.keywords
@@ -269,20 +258,24 @@ public struct Unknown: Sendable {
             options.topP = 1
             options.topK = 1
         }
+        
         struct AnalysisResponse: Codable {
             let definition: String
             let category: String
             let concepts: [String]
             let confidence: Float
         }
+        
         var response = ""
         for try await chunk in ollamaKit.chat(data: data) {
             response += chunk.message?.content ?? ""
         }
+        
         let jsonResponse = response.extractedCodeBlock()
         guard let jsonData = jsonResponse.data(using: .utf8) else {
             throw ComprehensionError.parsingFailed("Failed to convert response to data")
         }
+        
         let result = try JSONDecoder().decode(AnalysisResponse.self, from: jsonData)
         return Understanding(
             query: query,
@@ -293,25 +286,8 @@ public struct Unknown: Sendable {
         )
     }
     
-    /// Extracts URLs from search results
-    private func extractURLs(from searchResults: String) throws -> [URL] {
-        let pattern = #"https?://[^\s<>\"]+"#
-        let regex = try NSRegularExpression(pattern: pattern)
-        let matches = regex.matches(
-            in: searchResults,
-            range: NSRange(searchResults.startIndex..., in: searchResults)
-        )
-        
-        return matches.compactMap { match in
-            guard let range = Range(match.range, in: searchResults) else { return nil }
-            let urlString = String(searchResults[range])
-            return URL(string: urlString)
-        }
-    }
-    
     /// Detects content encoding from HTTP response and meta tags
     private func detectEncoding(from response: HTTPURLResponse, data: Data) -> String.Encoding {
-        // Check Content-Type header
         if let contentType = response.value(forHTTPHeaderField: "Content-Type"),
            let charset = contentType.components(separatedBy: "charset=").last?.trimmingCharacters(in: .whitespaces) {
             switch charset.lowercased() {
@@ -328,7 +304,6 @@ public struct Unknown: Sendable {
             }
         }
         
-        // Check meta tags
         if let content = String(data: data, encoding: .ascii),
            let metaCharset = content.range(of: "charset=", options: [.caseInsensitive]) {
             let startIndex = metaCharset.upperBound
