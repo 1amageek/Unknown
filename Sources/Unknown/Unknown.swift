@@ -92,7 +92,7 @@ public struct Unknown: Sendable {
         ///   - searchLimit: Maximum number of search results to process
         ///   - logger: Optional logger for debugging and monitoring
         public init(
-            model: String = "llama3.2:latest",
+            model: String = "phi4:latest",
             searchLimit: Int = 10,
             logger: Logger? = nil
         ) {

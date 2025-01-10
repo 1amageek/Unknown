@@ -1,5 +1,5 @@
 {
-  "originHash" : "982ce1d55b28176ee1f2df9295732b1bb93ec63a8d0cbf50a307c7f28959d790",
+  "originHash" : "7b9c40363719ecbd5529d5f10993fdc8e7f51c2d37d123f7d6a43b7e41214320",
   "pins" : [
     {
       "identity" : "aspectanalyzer",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/1amageek/OllamaKit.git",
       "state" : {
         "branch" : "main",
-        "revision" : "f021e813b9d3368ecfae01d082372b4bc86029e2"
+        "revision" : "183be24fd630f4ec54038b783cad70a8638873fc"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/1amageek/Remark.git",
       "state" : {
         "branch" : "main",
-        "revision" : "10ac2ca1c85423738e76d9eb1c87d93af5a1f396"
+        "revision" : "ee33e6dbf978fcc63581431ea840edfb2ce629b4"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
         "branch" : "main",
-        "revision" : "1efe6f812904b34ed76ba28fd1f3e9f3bc94f8ec"
+        "revision" : "9576fd5710775d51caaf733e0f71f155c2f58c97"
       }
     },
     {
@@ -52,7 +52,7 @@
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
         "branch" : "master",
-        "revision" : "0837db354faf9c9deb710dc597046edaadf5360f"
+        "revision" : "cce8a91bbaaae4e9ee2fcc9505e2b0f0f29dab80"
       }
     }
   ],
